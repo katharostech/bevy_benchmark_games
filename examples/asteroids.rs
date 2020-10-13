@@ -210,7 +210,7 @@ fn exit_game(mut frame_count: Local<FrameCount>, mut exit_events: ResMut<Events<
     frame_count.0 += 1;
 
     // Run more iterations for headless mode
-    let iters = if cfg!(headless) { 1_000_000_000 } else { 500 };
+    let iters = if cfg!(headless) { 1_000_000_000 } else { 900 };
 
     if frame_count.0 > iters {
         exit_events.send(AppExit);

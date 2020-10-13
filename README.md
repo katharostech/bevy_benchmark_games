@@ -13,3 +13,5 @@ Or to run it headless:
 ```
 cargo run --example asteroids --features headless
 ```
+
+![asteroids](./doc/asteroids.gif)
