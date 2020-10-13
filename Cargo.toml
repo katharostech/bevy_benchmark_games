@@ -1,0 +1,22 @@
+[package]
+name = "bevy_benchmark_games"
+version = "0.1.0"
+authors = ["Zicklag <zicklag@katharostech.com>"]
+edition = "2018"
+
+[dependencies]
+bevy = { path = "../bevy" }
+rand = "0.7.3"
+rand_core = "0.5.1"
+glam = "0.9.5"
+perf-event = "0.4.5"
+human_format = "1.0.3"
+
+[build-dependencies]
+cfg_aliases = "0.1.0"
+
+[features]
+headless = []
+
+[profile.release]
+debug = true
