@@ -1,9 +1,10 @@
-use std::f32::consts::PI;
+use std::{f32::consts::PI, time::Instant};
 
-#[cfg(not(headless))]
-use bevy::winit::WinitConfig;
-use bevy::{app::AppExit, prelude::*};
-use bevy_benchmark_games::random::FakeRand;
+use bevy::{
+    app::AppExit, core::CorePlugin, prelude::*, type_registry::TypeRegistryPlugin,
+    winit::WinitConfig,
+};
+use bevy_benchmark_games::{metrics::IterationMetrics, metrics::Metrics, random::FakeRand};
 
 use rand::prelude::*;
 
@@ -20,6 +21,16 @@ struct Bullet {
 }
 #[derive(Default)]
 struct BulletMaterial(Option<Handle<ColorMaterial>>);
+
+#[cfg(headless)]
+const RUN_FOR_FRAMES: usize = 2_000;
+#[cfg(not(headless))]
+const RUN_FOR_FRAMES: usize = 500;
+
+#[cfg(headless)]
+const ITERATIONS: usize = 50;
+#[cfg(not(headless))]
+const ITERATIONS: usize = 2;
 
 fn spawn_ship(
     commands: &mut Commands,
@@ -204,66 +215,100 @@ fn destroy_ship(
 }
 
 #[derive(Default)]
-struct FrameCount(u64);
+struct FrameCount(usize);
 
 fn exit_game(mut frame_count: Local<FrameCount>, mut exit_events: ResMut<Events<AppExit>>) {
     frame_count.0 += 1;
 
-    // Run more iterations for headless mode
-    let iters = if cfg!(headless) { 1_000_000_000 } else { 900 };
-
-    if frame_count.0 > iters {
+    if frame_count.0 > RUN_FOR_FRAMES {
         exit_events.send(AppExit);
     }
 }
 
 fn main() {
-    #[cfg(target_os = "linux")]
-    let mut group = perf_event::Group::new().unwrap();
-    #[cfg(target_os = "linux")]
+    // Create CPU cycle and instruction counters
+    let mut counters = perf_event::Group::new().unwrap();
     let cycles = perf_event::Builder::new()
-        .group(&mut group)
+        .group(&mut counters)
         .kind(perf_event::events::Hardware::REF_CPU_CYCLES)
         .build()
         .unwrap();
-    #[cfg(target_os = "linux")]
     let instructions = perf_event::Builder::new()
-        .group(&mut group)
+        .group(&mut counters)
         .kind(perf_event::events::Hardware::INSTRUCTIONS)
         .build()
         .unwrap();
 
-    #[cfg(target_os = "linux")]
-    group.enable().unwrap();
+    fn build_app() -> App {
+        // Create Bevy app builder
+        let mut builder = App::build();
 
-    let mut builder = App::build();
+        // Add default plugins for non-headless builds
+        #[cfg(not(headless))]
+        builder.add_default_plugins().add_resource(WinitConfig {
+            return_from_run: true,
+        });
 
-    #[cfg(not(headless))]
-    builder.add_default_plugins().add_resource(WinitConfig {
-        return_from_run: true,
-    });
+        #[cfg(headless)]
+        builder.add_plugin(TypeRegistryPlugin::default());
+        builder.add_plugin(CorePlugin::default());
+        builder.add_plugin(TransformPlugin::default());
 
-    builder
-        .add_startup_system(setup.system())
-        .add_system(move_system.system())
-        .add_system(exit_game.system())
-        .add_system(move_ship.system())
-        .add_system(bullet_lifetime.system())
-        .add_system(boundary_mirror.system())
-        .add_system(destroy_asteroids.system())
-        .add_system(destroy_ship.system())
-        .run();
+        // Add game systems
+        builder
+            .add_startup_system(setup.system())
+            .add_system(move_system.system())
+            .add_system(exit_game.system())
+            .add_system(move_ship.system())
+            .add_system(bullet_lifetime.system())
+            .add_system(boundary_mirror.system())
+            .add_system(destroy_asteroids.system())
+            .add_system(destroy_ship.system());
 
-    let mut formatter = human_format::Formatter::new();
-    formatter.with_decimals(5);
+        builder.app
+    }
 
-    #[cfg(target_os = "linux")]
-    let counts = group.read().unwrap();
-    #[cfg(target_os = "linux")]
-    println!(
-        "cycles / instructions: {} / {} ({:.2} cpi)",
-        formatter.format(counts[&cycles] as f64),
-        formatter.format(counts[&instructions] as f64),
-        (counts[&cycles] as f64 / counts[&instructions] as f64)
-    );
+    let mut metrics = Metrics {
+        iterations: Vec::with_capacity(ITERATIONS),
+    };
+
+    for _ in 0..ITERATIONS {
+        #[allow(unused_mut)]
+        let mut app = build_app();
+
+        // Get current instant
+        let instant = Instant::now();
+
+        // Enable CPU counters
+        counters.enable().unwrap();
+
+        // Run the app
+        #[cfg(not(headless))]
+        app.run();
+
+        // Manually run update when headless as there is no window to do it
+        #[cfg(headless)]
+        for _ in 0..=RUN_FOR_FRAMES {
+            app.update();
+        }
+
+        // Disable CPU counters
+        counters.disable().unwrap();
+
+        // Get time
+        let elapsed = instant.elapsed();
+
+        // Record CPU metrics
+        let counts = counters.read().unwrap();
+        metrics.iterations.push(IterationMetrics {
+            cpu_cycles: counts[&cycles],
+            cpu_instructions: counts[&instructions],
+            avg_frame_time_us: elapsed.as_micros() as f64 / RUN_FOR_FRAMES as f64,
+        });
+
+        // Reset CPU counters
+        counters.reset().unwrap();
+    }
+
+    println!("{}", serde_json::to_string(&metrics).unwrap());
 }
