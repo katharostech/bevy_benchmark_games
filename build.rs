@@ -1,5 +1,5 @@
 fn main() {
     cfg_aliases::cfg_aliases! {
-        headless: { feature = "headless" }
+        headless: { not(feature = "with_graphics") }
     }
 }

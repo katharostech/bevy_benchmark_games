@@ -1,9 +1,11 @@
 use std::{f32::consts::PI, time::Instant};
 
-use bevy::{
-    app::AppExit, core::CorePlugin, prelude::*, type_registry::TypeRegistryPlugin,
-    winit::WinitConfig,
-};
+#[cfg(headless)]
+use bevy::type_registry::{TypeRegistryPlugin};
+#[cfg(not(headless))]
+use bevy::winit::WinitConfig;
+
+use bevy::{app::AppExit, core::CorePlugin, prelude::*};
 use bevy_benchmark_games::{metrics::IterationMetrics, metrics::Metrics, random::FakeRand};
 
 use rand::prelude::*;
@@ -23,12 +25,12 @@ struct Bullet {
 struct BulletMaterial(Option<Handle<ColorMaterial>>);
 
 #[cfg(headless)]
-const RUN_FOR_FRAMES: usize = 2_000;
+const RUN_FOR_FRAMES: usize = 300;
 #[cfg(not(headless))]
-const RUN_FOR_FRAMES: usize = 500;
+const RUN_FOR_FRAMES: usize = 400;
 
 #[cfg(headless)]
-const ITERATIONS: usize = 50;
+const ITERATIONS: usize = 200;
 #[cfg(not(headless))]
 const ITERATIONS: usize = 2;
 
@@ -61,7 +63,7 @@ fn setup(
         &mut materials,
     );
 
-    for _ in 0..100 {
+    for _ in 0..ITERATIONS {
         commands.spawn(SpriteComponents {
             #[cfg(not(headless))]
             material: materials.add(ColorMaterial::color(Color::rgb(

@@ -9,9 +9,9 @@ use std::{path::PathBuf, process::Stdio};
 pub fn build_example(name: &str, headless: bool) -> eyre::Result<String> {
     let mut args = vec!["build", "--release", "--example", name];
 
-    if headless {
+    if !headless {
         args.push("--features");
-        args.push("headless");
+        args.push("with-graphics");
     }
 
     Ok(Command::new("cargo")
