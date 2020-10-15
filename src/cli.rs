@@ -291,6 +291,8 @@ fn graph_series<'a, T: DrawingBackend + 'static>(
         .x_label_formatter(x_label_formatter.unwrap_or(&|x| format!("{}", x)))
         .draw()?;
 
+    let mean_label_x_offset = (dist.max() - dist.min()) / 20.;
+
     let mut draw_for_dist =
         |dist: &Distribution<f64>, color: &RGBColor, mean, mean_label_pos| -> eyre::Result<()> {
             // Draw the shaded probability indicator
@@ -312,7 +314,6 @@ fn graph_series<'a, T: DrawingBackend + 'static>(
 
             // Draw mean label
             let drawing_area = chart.plotting_area();
-
             drawing_area.draw(&Text::new(
                 format!(
                     "Avg. {}",
@@ -322,17 +323,40 @@ fn graph_series<'a, T: DrawingBackend + 'static>(
                         format!("{}", mean)
                     }
                 ),
-                (mean + ((dist.max() - dist.min()) / 20.), mean_label_pos),
-                TextStyle::from(("Sans", 15).into_font()).color(color),
+                (mean + mean_label_x_offset, mean_label_pos),
+                TextStyle::from(("Sans", 12).into_font()).color(color),
             ))?;
 
             Ok(())
         };
 
-    if let Some(prev) = prev_dist {
+    if let Some(prev) = &prev_dist {
         draw_for_dist(&prev, &RED, prev.mean(), 0.5 /* mean label pos */)?;
     }
     draw_for_dist(&dist, &BLUE, mean, 0.7 /* mean label pos */)?;
+
+    // Draw the difference percentage
+    if let Some(prev) = &prev_dist {
+        let drawing_area = chart.plotting_area();
+
+        let percentage_diff = (dist.mean() - prev.mean()) / prev.mean();
+
+        let color = if percentage_diff > 0. {
+            &RED
+        } else {
+            // Dark green
+            &RGBColor(0, 170, 0)
+        };
+
+        drawing_area.draw(&Text::new(
+            format!("{:+.2}%", percentage_diff),
+            (
+                dist.mean() + (prev.mean() - dist.mean()) + mean_label_x_offset,
+                0.6,
+            ),
+            TextStyle::from(("Sans", 20).into_font()).color(color),
+        ))?;
+    }
 
     Ok(())
 }
