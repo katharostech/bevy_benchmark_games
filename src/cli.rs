@@ -91,7 +91,7 @@ fn start() -> eyre::Result<()> {
 
             // Draw the title
             title_area.draw_text(
-                &format!("{} Benchmark", benchmark),
+                &format!("\"{}\" Benchmark", benchmark),
                 &TextStyle::from(
                     ("Sans", title_area.relative_to_height(1.))
                         .into_font()
@@ -339,9 +339,11 @@ fn graph_series<'a, T: DrawingBackend + 'static>(
     if let Some(prev) = &prev_dist {
         let drawing_area = chart.plotting_area();
 
-        let percentage_diff = (dist.mean() - prev.mean()) / prev.mean();
+        let percentage_diff = (dist.mean() - prev.mean()) / prev.mean() * 100.;
 
-        let color = if percentage_diff > 0. {
+        let color = if percentage_diff.abs() < 2. {
+            &BLACK
+        } else if percentage_diff > 0. {
             &RED
         } else {
             // Dark green

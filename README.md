@@ -10,15 +10,13 @@ The only current example is an asteroids-like game that looks like this when run
 
 > **Note:** These benchmarks only run on Linux because of a depencency on the Linux `perf` module. If you want to run these on Windows it would not be hard to compile out the pieces that won't work on Windows I just haven't spent the time to do it yet. Let me know if this is a blocker for you.
 
-To run the benchmark simply `cargo run` and it will run each game for a batch of frames, and record the following for each iteration:
+To run the benchmark simply `cargo run --release` and it will run each game for a batch of frames, and record the following for each iteration:
 
 - The average frame time
 - The number of CPU cycles spent
 - The number of CPU instructions run
 
-I'm still figuring out how to aggregate this information and how I'm going to present it in something like graphs and a web page, etc.
-
-The goal is that you just have to run `cargo run` and it will get you all the information you need and compare it to the last run of the benchmarks for you.
+![Report example](./doc/report-example.svg)
 
 ## Headful Mode
 
