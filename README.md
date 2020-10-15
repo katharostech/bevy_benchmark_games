@@ -16,7 +16,15 @@ To run the benchmark simply `cargo run --release` and it will run each game for 
 - The number of CPU cycles spent
 - The number of CPU instructions run
 
+The results will be recorded in a report at `target/report.svg`.
+
 ![Report example](./doc/report-example.svg)
+
+### Reading the Graphs
+
+The blue section of the graphs represent the latest run and the red section of the graphs represent the previous run.
+
+The Y axis in the graphs represents the probability that the given measurement will fall into that range and the vertical line represents the average value.
 
 ## Headful Mode
 
