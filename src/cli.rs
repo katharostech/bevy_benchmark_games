@@ -13,7 +13,7 @@ use crate::metrics::Metrics;
 mod cmd;
 
 /// The list of benchmarks
-static BENCHMARKS: &'static [&'static str] = &["asteroids"];
+static BENCHMARKS: &'static [&'static str] = &["breakout", "asteroids"];
 
 /// The number of columns of graphs we will have for each benchmark
 ///

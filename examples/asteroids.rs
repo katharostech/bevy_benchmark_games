@@ -1,7 +1,7 @@
 use std::{f32::consts::PI, time::Instant};
 
 #[cfg(headless)]
-use bevy::type_registry::{TypeRegistryPlugin};
+use bevy::type_registry::TypeRegistryPlugin;
 #[cfg(not(headless))]
 use bevy::winit::WinitConfig;
 
@@ -252,9 +252,10 @@ fn main() {
         });
 
         #[cfg(headless)]
-        builder.add_plugin(TypeRegistryPlugin::default());
-        builder.add_plugin(CorePlugin::default());
-        builder.add_plugin(TransformPlugin::default());
+        builder
+            .add_plugin(TypeRegistryPlugin::default())
+            .add_plugin(CorePlugin::default())
+            .add_plugin(TransformPlugin::default());
 
         // Add game systems
         builder
@@ -312,5 +313,6 @@ fn main() {
         counters.reset().unwrap();
     }
 
+    // Output metrics to be consumed by benmarking harness
     println!("{}", serde_json::to_string(&metrics).unwrap());
 }

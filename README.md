@@ -2,7 +2,9 @@
 
 These are "games" that require no user imput and that can be run headless for use as benchmarks for the Bevy ECS and core systems. The goal is to create something that has the overall "shape" of a game to help invoke performance characteristics more close to a real game.
 
-The only current example is an asteroids-like game that looks like this when run with graphics:
+We currently have a headless version of the bevy [breakout example][be] and an asteroids example that looks like this when run with graphics:
+
+[be]: https://github.com/bevyengine/bevy/blob/master/examples/game/breakout.rs
 
 ![asteroids](./doc/asteroids.gif)
 
