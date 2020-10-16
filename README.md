@@ -28,6 +28,12 @@ The blue section of the graphs represent the latest run and the red section of t
 
 The Y axis in the graphs represents the probability that the given measurement will fall into that range and the vertical line represents the average value.
 
+#### Benchmark Noise
+
+I've noticed on my laptop that the noise threshhold for the frame time seems to be around 5% to 12% worst caes for re-runs without changes. CPU cycles noise threshold seems to be a little bit less than the frame time. CPU instructions noise threshold, though seems to be *very* low, only varying about 0.01% on re-runs without changes. This makes the CPU instructions metric stand out as probably the most accurate metric that these benchmarks collect.
+
+The noise for benchmarks will vary a lot depending on your machine and what else it is running on it at the time. It is good to run the benmarks a few times without changing anything to get an idea of how much moise is present in the measurements on your computer.
+
 ## Headful Mode
 
 There's a half-baked feature where you can run `cargo run -- --no-headless` and it will actually display the graphical version of the game as it runs, and it will run far fewer iterations ( because they are so much slower with graphics running ). This is really just for making sure the logic remotely works and isn't supposed to be useful for benchmarking.
