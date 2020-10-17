@@ -34,6 +34,8 @@ I've noticed on my laptop that the noise threshhold for the frame time seems to 
 
 The noise for benchmarks will vary a lot depending on your machine and what else it is running on it at the time. It is good to run the benmarks a few times without changing anything to get an idea of how much moise is present in the measurements on your computer.
 
+Also check out the benchmarking tips from LLVM [here](https://llvm.org/docs/Benchmarking.html).
+
 ## Headful Mode
 
 There's a half-baked feature where you can run `cargo run -- --no-headless` and it will actually display the graphical version of the game as it runs, and it will run far fewer iterations ( because they are so much slower with graphics running ). This is really just for making sure the logic remotely works and isn't supposed to be useful for benchmarking.
